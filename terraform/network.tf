@@ -144,7 +144,7 @@ resource "azurerm_subnet" "databricks_host" {
   lifecycle {
     precondition {
       condition     = local.databricks_host_cidr_in_vnet
-      error_message = "subnet_cidr_databricks_host must fall within the virtual network address_space (IPv4 only)."
+      error_message = "The subnet_cidr_databricks_host CIDR must fall within the virtual network IPv4 address space."
     }
   }
 }
@@ -174,7 +174,7 @@ resource "azurerm_subnet" "databricks_container" {
   lifecycle {
     precondition {
       condition     = local.databricks_container_cidr_in_vnet
-      error_message = "subnet_cidr_databricks_container must fall within the virtual network address_space (IPv4 only)."
+      error_message = "The subnet_cidr_databricks_container CIDR must fall within the virtual network IPv4 address space."
     }
   }
 }
@@ -190,7 +190,7 @@ resource "azurerm_subnet" "private_endpoints" {
   lifecycle {
     precondition {
       condition     = local.private_endpoints_cidr_in_vnet
-      error_message = "subnet_cidr_private_endpoints must fall within the virtual network address_space (IPv4 only)."
+      error_message = "The subnet_cidr_private_endpoints CIDR must fall within the virtual network IPv4 address space."
     }
   }
 }

@@ -60,7 +60,7 @@ resource "azurerm_databricks_workspace" "dp_workspace" {
   lifecycle {
     precondition {
       condition     = local.vnet_id_from_dbx_public_subnet == data.azurerm_virtual_network.this.id && local.vnet_id_from_dbx_private_subnet == data.azurerm_virtual_network.this.id
-      error_message = "Databricks public and private subnets must belong to virtual_network_name / virtual_network_resource_group_name."
+      error_message = "The Databricks public and private subnets must belong to the virtual network specified by virtual_network_name and virtual_network_resource_group_name."
     }
     precondition {
       condition     = local.vnet_id_from_pe_subnet == data.azurerm_virtual_network.this.id
@@ -68,7 +68,7 @@ resource "azurerm_databricks_workspace" "dp_workspace" {
     }
     precondition {
       condition     = data.azurerm_resource_group.workload.location == data.azurerm_virtual_network.this.location
-      error_message = "workload_resource_group_name must be in the same Azure region as the target virtual network (location alignment)."
+      error_message = "The workload resource group must be in the same Azure region as the target virtual network for location alignment."
     }
   }
 }

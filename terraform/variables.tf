@@ -12,7 +12,7 @@ variable "resource_prefix" {
   default     = "databricks-workspace"
   validation {
     condition     = can(regex("^[a-z0-9-.]{1,40}$", var.resource_prefix))
-    error_message = "resource_prefix must be 1-40 characters containing only a-z, 0-9, -, ."
+    error_message = "The resource_prefix value must be 1-40 characters and contain only a-z, 0-9, hyphens, and periods."
   }
 }
 
@@ -27,7 +27,7 @@ variable "workspace_name" {
       var.workspace_name == null || trimspace(var.workspace_name) == "" ||
       can(regex("^[a-zA-Z0-9-]{3,30}$", trimspace(var.workspace_name)))
     )
-    error_message = "workspace_name must be null/blank for the default name, or 3-30 characters using only letters, numbers, and hyphens."
+    error_message = "The workspace_name value must be null or blank to use the default name, or be 3-30 characters using only letters, numbers, and hyphens."
   }
 }
 
@@ -51,7 +51,7 @@ variable "subnet_cidr_databricks_host" {
   description = "/22 CIDR for the Databricks host (public) subnet. Must fit inside the VNet address_space and not overlap other subnets in this template."
   validation {
     condition     = endswith(var.subnet_cidr_databricks_host, "/22")
-    error_message = "subnet_cidr_databricks_host must be a /22 CIDR (e.g. 10.0.0.0/22)."
+    error_message = "The subnet_cidr_databricks_host value must be a /22 CIDR block (for example, 10.0.0.0/22)."
   }
 }
 
@@ -60,7 +60,7 @@ variable "subnet_cidr_databricks_container" {
   description = "/22 CIDR for the Databricks container (private) subnet. Must fit inside the VNet address_space and not overlap other subnets in this template."
   validation {
     condition     = endswith(var.subnet_cidr_databricks_container, "/22")
-    error_message = "subnet_cidr_databricks_container must be a /22 CIDR (e.g. 10.0.4.0/22)."
+    error_message = "The subnet_cidr_databricks_container value must be a /22 CIDR block (for example, 10.0.4.0/22)."
   }
 }
 
@@ -69,7 +69,7 @@ variable "subnet_cidr_private_endpoints" {
   description = "IPv4 CIDR for the private endpoint subnet (control plane, browser auth, DBFS). Prefix length is not fixed (/26 is common). No delegation. Must fit inside the VNet address_space and not overlap other subnets."
   validation {
     condition     = can(cidrhost(var.subnet_cidr_private_endpoints, 0))
-    error_message = "subnet_cidr_private_endpoints must be a valid IPv4 CIDR (e.g. 10.0.8.0/26)."
+    error_message = "The subnet_cidr_private_endpoints value must be a valid IPv4 CIDR block (for example, 10.0.8.0/26)."
   }
 }
 
