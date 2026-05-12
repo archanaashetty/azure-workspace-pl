@@ -40,7 +40,7 @@ output "subnet_private_id" {
 
 output "subnet_privatelink_id" {
   value       = azurerm_subnet.private_endpoints.id
-  description = "Private endpoint subnet ID — /22 created by this stack."
+  description = "Private endpoint subnet ID (CIDR size set by subnet_cidr_private_endpoints)."
 }
 
 output "nat_gateway_id" {

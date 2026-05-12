@@ -1,5 +1,5 @@
 # Aligned with: https://github.com/databricks-solutions/technical-services-solutions/tree/main/workspace-setup/terraform-examples/azure/azure-privatelink-classic
-# This fork uses an EXISTING VNet/subnets and End-to-end Private Link (public_network_access_enabled = false).
+# This fork uses an EXISTING VNet with Terraform-created subnets (Databricks /22 + configurable PE subnet) and End-to-end Private Link (public_network_access_enabled = false).
 
 terraform {
   required_version = ">= 1.3.0"

@@ -1,6 +1,6 @@
 # Azure Databricks — isolated workspace with Private Link
 
-Terraform that deploys an **Azure Databricks Premium** workspace into an **existing virtual network**, with **end-to-end Private Link** (workspace public network access disabled), **three /22 subnets** created for you, **NAT** and **NSG** for the Databricks subnets, **private DNS zones**, **private endpoints** (control plane UI/API, optional browser authentication, DBFS blob/dfs), and **account-level Network Connectivity Config (NCC)** with automatic approval of serverless private endpoint connections on the workspace root storage account.
+Terraform that deploys an **Azure Databricks Premium** workspace into an **existing virtual network**, with **end-to-end Private Link** (workspace public network access disabled), **two /22 subnets** for Databricks (host and container), a **separate private endpoint subnet** whose **prefix length you choose** (for example `/26`), **NAT** and **NSG** for the Databricks subnets, **private DNS zones**, **private endpoints** (control plane UI/API, optional browser authentication, DBFS blob/dfs), and **account-level Network Connectivity Config (NCC)** with automatic approval of serverless private endpoint connections on the workspace root storage account.
 
 The layout and behaviour are adapted from the Databricks Solutions example [azure-privatelink-classic](https://github.com/databricks-solutions/technical-services-solutions/tree/main/workspace-setup/terraform-examples/azure/azure-privatelink-classic) (existing VNet variant, E2E Private Link, no customer-managed keys in this template).
 
@@ -13,17 +13,17 @@ Repository: [https://github.com/archanaashetty/azure-workspace-pl](https://githu
 - **Azure subscription** access: **Contributor** or **Owner** at **subscription** scope is strongly recommended (Databricks creates a managed resource group; subscription-level permissions avoid surprise failures)
 - An **existing** Databricks **account** and **account admin** access for account APIs (NCC, optional metastore assignment)
 - An **existing** resource group for **workload** resources (workspace, DNS zones, private endpoints, NAT, NSG), in the **same region** as the target VNet
-- An **existing** virtual network with enough **unused, non-overlapping** address space for **three /22** ranges
+- An **existing** virtual network with enough **unused, non-overlapping** address space for **two /22** ranges (Databricks) plus your chosen **private endpoint** subnet CIDR (often **`/26`** for a dedicated PE subnet; any valid size that fits is allowed)
 
 ## What this stack creates
 
 | Area | Resources |
 |------|-------------|
-| **Network** (in your VNet’s resource group) | Three `/22` subnets: Databricks **host**, **container**, and **private endpoints**; **NSG** + outbound rules (Azure AD, Azure Front Door); **NAT gateway** + public IP on the two Databricks subnets |
+| **Network** (in your VNet’s resource group) | Two **`/22`** subnets for Databricks **host** and **container**, plus one **configurable-size** subnet for **private endpoints**; **NSG** + outbound rules (Azure AD, Azure Front Door); **NAT gateway** + public IP on the two Databricks subnets |
 | **Workload RG** | Databricks **workspace** (Premium, VNet-injected, public network access **off**, storage firewall + access connector), **private DNS zones** + VNet links, **private endpoints**, **NCC** rules and **azapi** approval of storage private endpoint connections |
 | **Account** (via Databricks provider) | **NCC**, optional **Unity Catalog metastore** assignment |
 
-Subnets are validated at plan/apply time to sit inside the VNet `address_space`. **You** must pick three **non-overlapping** `/22` blocks that do not clash with existing subnets.
+Subnets are validated at plan/apply time to sit inside the VNet `address_space`. **You** must pick **non-overlapping** CIDRs: two **`/22`** blocks for Databricks and one block for private endpoints (any valid IPv4 CIDR that fits your design; `/26` is a common size for a dedicated private endpoint subnet).
 
 ## Quick start
 
@@ -74,7 +74,7 @@ Subnets are validated at plan/apply time to sit inside the VNet `address_space`.
 | `virtual_network_name` | Yes | Existing VNet name; subnets and DNS links target this VNet. |
 | `subnet_cidr_databricks_host` | Yes | `/22` CIDR for the Databricks **host** subnet (delegated). |
 | `subnet_cidr_databricks_container` | Yes | `/22` CIDR for the Databricks **container** subnet (delegated). |
-| `subnet_cidr_private_endpoints` | Yes | `/22` CIDR for **private endpoints** only (not delegated). |
+| `subnet_cidr_private_endpoints` | Yes | IPv4 CIDR for the **private endpoint** subnet only (not delegated); prefix length is **not** required to be `/22` (e.g. `10.0.8.0/26`). |
 | `databricks_account_id` | Yes | Databricks account ID (from `https://accounts.azuredatabricks.net/accounts/<id>`). |
 | `resource_prefix` | No (default `databricks-workspace`) | Prefix for names; also drives the derived DBFS storage account name. |
 | `subnets_service_endpoints` | No | Optional list of service endpoints on the two Databricks subnets (e.g. `["Microsoft.Storage"]`). |
@@ -93,7 +93,7 @@ terraform/
   azure.tf             # Data source: workload resource group
   data.tf              # Client config + target VNet
   main.tf              # Shared locals (prefix, DBFS name, association IDs)
-  network.tf           # /22 subnets, NSG, NAT
+  network.tf           # Databricks /22 subnets, PE subnet, NSG, NAT
   databricks.tf        # Access connector + workspace
   dns_zones.tf         # Private DNS zones + VNet links
   pe_control_plane.tf  # Private endpoints: databricks_ui_api + browser_authentication

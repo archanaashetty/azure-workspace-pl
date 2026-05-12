@@ -1,5 +1,5 @@
 # Reference layout: https://github.com/databricks-solutions/technical-services-solutions/tree/main/workspace-setup/terraform-examples/azure/azure-privatelink-classic
-# Subnets: created as /22 within the provided VNet (see network.tf).
+# Subnets: Databricks host/container are /22; private endpoint subnet size is configurable (see network.tf).
 
 variable "az_subscription" {
   type        = string
@@ -28,7 +28,7 @@ variable "virtual_network_resource_group_name" {
 
 variable "virtual_network_name" {
   type        = string
-  description = "Existing virtual network into which /22 subnets are created for Databricks and private endpoints."
+  description = "Existing virtual network into which new subnets are created (Databricks /22 + private endpoint subnet per variables)."
 }
 
 variable "subnet_cidr_databricks_host" {
@@ -51,10 +51,10 @@ variable "subnet_cidr_databricks_container" {
 
 variable "subnet_cidr_private_endpoints" {
   type        = string
-  description = "/22 CIDR for private endpoints (control plane, browser auth, DBFS). No delegation. Must fit inside the VNet address_space and not overlap other subnets in this template."
+  description = "IPv4 CIDR for the private endpoint subnet (control plane, browser auth, DBFS). Prefix length is not fixed (/26 is common). No delegation. Must fit inside the VNet address_space and not overlap other subnets."
   validation {
-    condition     = endswith(var.subnet_cidr_private_endpoints, "/22")
-    error_message = "subnet_cidr_private_endpoints must be a /22 CIDR (e.g. 10.0.8.0/22)."
+    condition     = can(cidrhost(var.subnet_cidr_private_endpoints, 0))
+    error_message = "subnet_cidr_private_endpoints must be a valid IPv4 CIDR (e.g. 10.0.8.0/26)."
   }
 }
 

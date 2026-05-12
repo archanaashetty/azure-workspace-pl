@@ -6,14 +6,14 @@ az_subscription = "00000000-0000-0000-0000-000000000000"
 # Must exist before terraform apply (workspace, DNS zones, PEs, NAT, NSG land here). Region must match the VNet region.
 workload_resource_group_name = "rg-dbw-workload-prod"
 
-# Existing VNet — three non-overlapping /22 prefixes must fit inside this VNet's address_space
+# Existing VNet — Databricks subnets are /22; PE subnet can be any valid size that fits (e.g. /26)
 virtual_network_resource_group_name = "rg-network-prod"
 virtual_network_name                  = "vnet-prod-001"
 
 # Example allocation inside 10.0.0.0/16 — adjust to unused space in your VNet
-subnet_cidr_databricks_host       = "10.0.0.0/22"
-subnet_cidr_databricks_container  = "10.0.4.0/22"
-subnet_cidr_private_endpoints     = "10.0.8.0/22"
+subnet_cidr_databricks_host      = "10.0.0.0/22"
+subnet_cidr_databricks_container = "10.0.4.0/22"
+subnet_cidr_private_endpoints    = "10.0.8.0/26"
 
 # Optional: service endpoints on the two Databricks-delegated subnets only
 # subnets_service_endpoints = ["Microsoft.Storage"]
