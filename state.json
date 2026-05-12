@@ -1,0 +1,27 @@
+{
+  "project": "Azure Private Link setup",
+  "last_updated": null,
+  "azure": {
+    "subscription_id": "",
+    "resource_group": "",
+    "region": "",
+    "vnet_name": "",
+    "vnet_address_space": ""
+  },
+  "private_link": {
+    "target_service": "",
+    "private_endpoint_name": "",
+    "private_dns_zone": "",
+    "subnet_name": "",
+    "status": "not_started"
+  },
+  "checklist": {
+    "prerequisites_reviewed": false,
+    "network_plan_documented": false,
+    "private_endpoint_created": false,
+    "private_dns_configured": false,
+    "connectivity_validated": false,
+    "documentation_updated": false
+  },
+  "notes": ""
+}
