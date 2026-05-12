@@ -16,6 +16,21 @@ variable "resource_prefix" {
   }
 }
 
+variable "workspace_name" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Azure Databricks workspace resource name (3-30 chars: letters, numbers, hyphens). If null or blank, defaults to dbw-<resource_prefix>-dp."
+
+  validation {
+    condition = (
+      var.workspace_name == null || trimspace(var.workspace_name) == "" ||
+      can(regex("^[a-zA-Z0-9-]{3,30}$", trimspace(var.workspace_name)))
+    )
+    error_message = "workspace_name must be null/blank for the default name, or 3-30 characters using only letters, numbers, and hyphens."
+  }
+}
+
 variable "workload_resource_group_name" {
   type        = string
   description = "Existing resource group where the workspace, DNS zones, private endpoints, NAT, and NSG are deployed. Must exist before apply."

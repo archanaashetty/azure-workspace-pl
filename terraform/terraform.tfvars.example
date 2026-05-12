@@ -28,6 +28,9 @@ enable_browser_authentication_private_endpoint = true
 
 resource_prefix = "customer-isolated-pl-01"
 
+# Optional: Azure Databricks workspace name (3-30 chars, letters/numbers/hyphens). Omit for dbw-<resource_prefix>-dp.
+# workspace_name = "my-team-dbw"
+
 tags = {
   scenario = "azure-databricks-isolated-e2e-pl"
 }

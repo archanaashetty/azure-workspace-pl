@@ -1,3 +1,8 @@
+output "workspace_name" {
+  value       = azurerm_databricks_workspace.dp_workspace.name
+  description = "Azure Databricks workspace resource name (custom or default dbw-<resource_prefix>-dp)."
+}
+
 output "workspace_url" {
   value       = azurerm_databricks_workspace.dp_workspace.workspace_url
   description = "Databricks workspace URL (Private Link / private DNS must resolve from your client)."

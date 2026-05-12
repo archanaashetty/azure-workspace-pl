@@ -22,7 +22,7 @@ resource "azurerm_databricks_access_connector" "dbfs" {
 }
 
 resource "azurerm_databricks_workspace" "dp_workspace" {
-  name                = "dbw-${local.prefix}-dp"
+  name                = local.workspace_name_effective
   resource_group_name = local.dp_rg_name
   location            = local.dp_rg_location
   sku                 = "premium"

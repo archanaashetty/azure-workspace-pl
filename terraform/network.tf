@@ -1,6 +1,68 @@
 # Subnets, NSG, and NAT inside the customer-provided VNet (Databricks Solutions reference pattern).
 # https://github.com/databricks-solutions/technical-services-solutions/blob/main/workspace-setup/terraform-examples/azure/azure-privatelink-classic/tf/network.tf
 
+locals {
+  # IPv4-only containment check (no cidrcontains — compatible with all Terraform 1.x builds).
+  _vnet_address_spaces = data.azurerm_virtual_network.this.address_space
+
+  databricks_host_cidr_in_vnet = anytrue([
+    for space in local._vnet_address_spaces :
+    length(split(".", cidrhost(space, 0))) == 4 && length(split(".", cidrhost(var.subnet_cidr_databricks_host, 0))) == 4
+    && tonumber(split("/", var.subnet_cidr_databricks_host)[1]) >= tonumber(split("/", space)[1])
+    && floor(
+      (tonumber(split(".", cidrhost(var.subnet_cidr_databricks_host, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_host, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_host, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_host, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    ) == floor(
+      (tonumber(split(".", cidrhost(space, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(space, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(space, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(space, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    )
+  ])
+
+  databricks_container_cidr_in_vnet = anytrue([
+    for space in local._vnet_address_spaces :
+    length(split(".", cidrhost(space, 0))) == 4 && length(split(".", cidrhost(var.subnet_cidr_databricks_container, 0))) == 4
+    && tonumber(split("/", var.subnet_cidr_databricks_container)[1]) >= tonumber(split("/", space)[1])
+    && floor(
+      (tonumber(split(".", cidrhost(var.subnet_cidr_databricks_container, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_container, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_container, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(var.subnet_cidr_databricks_container, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    ) == floor(
+      (tonumber(split(".", cidrhost(space, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(space, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(space, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(space, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    )
+  ])
+
+  private_endpoints_cidr_in_vnet = anytrue([
+    for space in local._vnet_address_spaces :
+    length(split(".", cidrhost(space, 0))) == 4 && length(split(".", cidrhost(var.subnet_cidr_private_endpoints, 0))) == 4
+    && tonumber(split("/", var.subnet_cidr_private_endpoints)[1]) >= tonumber(split("/", space)[1])
+    && floor(
+      (tonumber(split(".", cidrhost(var.subnet_cidr_private_endpoints, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(var.subnet_cidr_private_endpoints, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(var.subnet_cidr_private_endpoints, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(var.subnet_cidr_private_endpoints, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    ) == floor(
+      (tonumber(split(".", cidrhost(space, 0))[0]) * 16777216
+        + tonumber(split(".", cidrhost(space, 0))[1]) * 65536
+        + tonumber(split(".", cidrhost(space, 0))[2]) * 256
+        + tonumber(split(".", cidrhost(space, 0))[3]))
+      / pow(2, 32 - tonumber(split("/", space)[1]))
+    )
+  ])
+}
+
 resource "azurerm_public_ip" "databricks_nat" {
   name                = "pip-${local.prefix}-dbx-nat"
   location            = local.dp_rg_location
@@ -81,10 +143,8 @@ resource "azurerm_subnet" "databricks_host" {
 
   lifecycle {
     precondition {
-      condition = anytrue([
-        for space in data.azurerm_virtual_network.this.address_space : cidrcontains(space, var.subnet_cidr_databricks_host)
-      ])
-      error_message = "subnet_cidr_databricks_host must fall within the virtual network address_space."
+      condition     = local.databricks_host_cidr_in_vnet
+      error_message = "subnet_cidr_databricks_host must fall within the virtual network address_space (IPv4 only)."
     }
   }
 }
@@ -113,10 +173,8 @@ resource "azurerm_subnet" "databricks_container" {
 
   lifecycle {
     precondition {
-      condition = anytrue([
-        for space in data.azurerm_virtual_network.this.address_space : cidrcontains(space, var.subnet_cidr_databricks_container)
-      ])
-      error_message = "subnet_cidr_databricks_container must fall within the virtual network address_space."
+      condition     = local.databricks_container_cidr_in_vnet
+      error_message = "subnet_cidr_databricks_container must fall within the virtual network address_space (IPv4 only)."
     }
   }
 }
@@ -131,10 +189,8 @@ resource "azurerm_subnet" "private_endpoints" {
 
   lifecycle {
     precondition {
-      condition = anytrue([
-        for space in data.azurerm_virtual_network.this.address_space : cidrcontains(space, var.subnet_cidr_private_endpoints)
-      ])
-      error_message = "subnet_cidr_private_endpoints must fall within the virtual network address_space."
+      condition     = local.private_endpoints_cidr_in_vnet
+      error_message = "subnet_cidr_private_endpoints must fall within the virtual network address_space (IPv4 only)."
     }
   }
 }

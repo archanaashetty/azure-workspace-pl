@@ -5,6 +5,9 @@ locals {
   dbfsname = "dbfs${substr(join("", regexall("[a-z0-9]", lower(var.resource_prefix))), 0, 20)}"
   tags     = var.tags
 
+  # Optional explicit workspace name; otherwise same pattern as upstream (dbw-<prefix>-dp).
+  workspace_name_effective = trimspace(try(var.workspace_name, "")) != "" ? trimspace(var.workspace_name) : "dbw-${local.prefix}-dp"
+
   dp_rg_name     = data.azurerm_resource_group.workload.name
   dp_rg_id       = data.azurerm_resource_group.workload.id
   dp_rg_location = data.azurerm_resource_group.workload.location
